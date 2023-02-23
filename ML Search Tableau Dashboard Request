@@ -1,6 +1,6 @@
 DI ML Search Tableau Dashboard Request query:
 
- -- A) # of searches
+ -- A) # of searches: Missing event
 select count(distinct ZION_ENRICHED.USER.USER_SEARCHED.zion_user_id)
 from ZION_ENRICHED.USER.USER_SEARCHED
 
