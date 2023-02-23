@@ -1,0 +1,61 @@
+DI ML Search Tableau Dashboard Request query:
+
+ -- A) # of searches
+select count(distinct ZION_ENRICHED.USER.USER_SEARCHED.zion_user_id)
+from ZION_ENRICHED.USER.USER_SEARCHED
+
+ -- B) # of Customers with a search
+select count(distinct ZION_ENRICHED.USER.USER_SEARCHED.zion_user_id)
+from ZION_ENRICHED.USER.USER_SEARCHED
+
+
+-- C) # of searches with a click
+select zion_anon_id,
+count(*)
+from ZION_ENRICHED.USER.USER_CLICKED_LINK_GENERIC
+group by 1
+
+
+
+-- D) search conversion rate
+
+select
+   DATE_TRUNC('week',ZION_ENRICHED.USER.USER_SEARCHED.EVENT_TIMESTAMP) AS WEEK_OF,
+   count(distinct ZION_ENRICHED.USER.USER_SEARCHED.zion_user_id) as population,
+   count(distinct ZION_ENRICHED.USER.USER_CLICKED_LINK_GENERIC.zion_user_id) as sampleSize,
+   count(distinct ZION_ENRICHED.USER.USER_CLICKED_LINK_GENERIC.zion_user_id) / count(distinct 
+   ZION_ENRICHED.USER.USER_SEARCHED.zion_user_id) as convertRate
+   from ZION_ENRICHED.USER.USER_SEARCHED
+   left join ZION_ENRICHED.USER.USER_CLICKED_LINK_GENERIC
+   on ZION_ENRICHED.USER.USER_CLICKED_LINK_GENERIC.zion_session_id = ZION_ENRICHED.USER.USER_SEARCHED.zion_session_id
+   group by 1
+
+-- E) Search Term 
+ 
+select 
+    DATE_TRUNC('week', EVENT_TIMESTAMP) AS WEEK_OF,
+    search_text as searchTerm,
+    count(*) searchtext_Count 
+    FROM ZION_ENRICHED.USER.USER_SEARCHED
+    WHERE WEEK_OF BETWEEN '2022-01-01' and '2023-01-01'
+    AND PLATFORM = 'web'
+    AND search_text is not null and trim(search_text) !=''
+    group by 1,2
+    order by searchtext_Count desc
+
+-- F) week over week change. Query not completed. 
+select 
+	DATE_TRUNC('week', EVENT_TIMESTAMP) AS WEEK_OF,
+    search_text as searchTerm,
+    count(*) searchtext_Count, 
+    LAG(searchtext_Count,1) OVER(
+	ORDER BY week_of
+    
+    )previousSearchText
+FROM ZION_ENRICHED.USER.USER_SEARCHED
+WHERE WEEK_OF BETWEEN '2022-01-01' and '2023-01-01'
+AND PLATFORM = 'web'
+AND search_text is not null and trim(search_text) !=''
+group by 1,2
+order by searchtext_Count desc
+
